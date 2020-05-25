@@ -86,79 +86,6 @@ def pattern_26(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_27(n , pip_link , pip_p_series):
-    if n % 2 == 0 and n >= 6:
-        return is_local_min_max(n , pip_p_series , 0) \
-               and is_increase_series(pip_p_series , range(1 , n , 2)) \
-               and is_increase_series(pip_p_series , range(0 , n , 2)) \
-               and trend_line_slope(pip_p_series , 1 , n - 3) < trend_line_slope(pip_p_series , 2 , n - 2)
-    elif n % 2 == 1 and n >= 7:
-        return is_local_min_max(n , pip_p_series , 1) \
-               and is_increase_series(pip_p_series , range(0 , n , 2)) \
-               and is_increase_series(pip_p_series , range(1 , n , 2)) \
-               and trend_line_slope(pip_p_series , 1 , n - 3) < trend_line_slope(pip_p_series , 2 , n - 2)
-    else:
-        return False
-
-
-def pattern_29(n , pip_link , pip_p_series):
-    if n % 2 == 0 and n >= 6:
-        return is_local_min_max(n , pip_p_series , 0) \
-               and is_decrease_series(pip_p_series , range(1 , n , 2)) \
-               and is_decrease_series(pip_p_series , range(0 , n , 2)) \
-               and trend_line_slope(pip_p_series , 1 , n - 3) < trend_line_slope(pip_p_series , 2 , n - 2)
-    elif n % 2 == 1 and n >= 7:
-        return is_local_min_max(n , pip_p_series , 1) \
-               and is_decrease_series(pip_p_series , range(0 , n , 2)) \
-               and is_decrease_series(pip_p_series , range(1 , n , 2)) \
-               and trend_line_slope(pip_p_series , 1 , n - 3) < trend_line_slope(pip_p_series , 2 , n - 2)
-    else:
-        return False
-
-
-def pattern_31(n , pip_link , pip_p_series):
-    if n == 5:
-        return (pip_link[3] - pip_link[1]) <= 6 * 5 \
-               and is_local_min(pip_p_series , range(1 , n , 2)) \
-               and pip_p_series[4] > pip_p_series[2] \
-               and is_similar_price(pip_p_series , 1 , 3) \
-               and not is_similar_price(pip_p_series , 2 , 1 if pip_p_series[1] < pip_p_series[3] else 3)
-    else:
-        return False
-
-
-def pattern_32(n , pip_link , pip_p_series):
-    if n == 5:
-        return (pip_link[3] - pip_link[1]) <= 6 * 5 \
-               and is_local_max(pip_p_series , range(1 , n , 2)) \
-               and pip_p_series[2] > pip_p_series[4] \
-               and is_similar_price(pip_p_series , 1 , 3) \
-               and not is_similar_price(pip_p_series , 2 , 1 if pip_p_series[1] > pip_p_series[3] else 3)
-    else:
-        return False
-
-
-def pattern_33(n , pip_link , pip_p_series):
-    if n == 7:
-        return pip_p_series[6] >= pip_p_series[4] \
-               and pip_p_series[3] < min(pip_p_series[1] , pip_p_series[5]) \
-               and is_local_min_max(n, pip_p_series, 0) \
-               and is_similar_price(pip_p_series , 1 , 5) and is_similar_price(pip_p_series , 2 , 4) \
-               and is_similar_interval(pip_link , 2 , 4 , 4 , 6)
-    else:
-        return False
-
-
-def pattern_34(n , pip_link , pip_p_series):
-    if n == 7:
-        return pip_p_series[6] <= pip_p_series[4] \
-               and pip_p_series[3] > max(pip_p_series[1] , pip_p_series[5]) \
-               and is_local_min_max(n, pip_p_series, 1) \
-               and is_similar_price(pip_p_series , 1 , 5) and is_similar_price(pip_p_series , 2 , 4) \
-               and is_similar_interval(pip_link , 2 , 4 , 4 , 6)
-    else:
-        return False
-
 
 cpdef bint is_local_min_max(int n , series , bint start_direction):
     """
@@ -311,12 +238,6 @@ name_dict = {
   "triangles_descending_down": pattern_24,
   "triangles_symmetrical_up": pattern_25,
   "triangles_symmetrical_down": pattern_26,
-  "wedges_rising": pattern_27,
-  "wedges_falling": pattern_29,
-  "double_bottoms": pattern_31,
-  "double_tops": pattern_32,
-  "head_and_shoulder_bottoms": pattern_33,
-  "head_and_shoulder_tops": pattern_34
 }
 
 

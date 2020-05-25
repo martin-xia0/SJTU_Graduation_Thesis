@@ -4,8 +4,7 @@ from distutils.core import Extension
 import numpy as np
 
 
-# name = "pattern"
-name = "pip_arr"
+name = "dist_models"
 
 sourcefiles = ["{}.pyx".format(name)]
 headerfiles = ["/usr/local/lib/python3.7/site-packages/Cython/Includes", np.get_include()]

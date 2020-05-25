@@ -96,7 +96,6 @@ cdef class PipArrDetector:
             self.vd_map[i_start_series[i_row]][i_end_series[i_row]] = vd_series[i_row]
             i_row += 1
         self.n_row = i_row
-
         return 
 
     cpdef void find_one_pip(self , int i_l , int i_r):
