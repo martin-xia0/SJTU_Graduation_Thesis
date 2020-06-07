@@ -4,11 +4,10 @@ import numpy as np
 
 import time
 cimport numpy as np
-from libcpp.map cimport map as cpp_map
 from libcpp.string cimport string
 
 
-def pattern_21(n , pip_link , pip_p_series):
+def pattern_1(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 1) \
                and is_uniform_series(pip_p_series , range(1 , n , 2)) \
@@ -21,7 +20,7 @@ def pattern_21(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_22(n , pip_link , pip_p_series):
+def pattern_2(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 0) \
                and is_uniform_series(pip_p_series , range(0 , n , 2)) \
@@ -34,7 +33,7 @@ def pattern_22(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_23(n , pip_link , pip_p_series):
+def pattern_3(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 1) \
                and is_uniform_series(pip_p_series , range(0 , n , 2)) \
@@ -47,7 +46,7 @@ def pattern_23(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_24(n , pip_link , pip_p_series):
+def pattern_4(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 0) \
                and is_uniform_series(pip_p_series , range(1 , n , 2)) \
@@ -60,7 +59,7 @@ def pattern_24(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_25(n , pip_link , pip_p_series):
+def pattern_5(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 1) \
                and is_increase_series(pip_p_series , range(0 , n , 2)) \
@@ -73,7 +72,7 @@ def pattern_25(n , pip_link , pip_p_series):
         return False
 
 
-def pattern_26(n , pip_link , pip_p_series):
+def pattern_6(n , pip_link , pip_p_series):
     if n % 2 == 0 and n >= 6:
         return is_local_min_max(n , pip_p_series , 0) \
                and is_increase_series(pip_p_series , range(1 , n , 2)) \
@@ -232,12 +231,12 @@ cpdef double trend_line_slope(series , index_l , index_r):
 
 
 name_dict = {
-  "triangles_ascending_up" : pattern_21,
-  "triangles_ascending_down" : pattern_22,
-  "triangles_descending_up": pattern_23,
-  "triangles_descending_down": pattern_24,
-  "triangles_symmetrical_up": pattern_25,
-  "triangles_symmetrical_down": pattern_26,
+  "triangles_ascending_up" : pattern_1,
+  "triangles_ascending_down" : pattern_2,
+  "triangles_descending_up": pattern_3,
+  "triangles_descending_down": pattern_4,
+  "triangles_symmetrical_up": pattern_5,
+  "triangles_symmetrical_down": pattern_6,
 }
 
 

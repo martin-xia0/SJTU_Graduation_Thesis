@@ -30,11 +30,9 @@ cdef class PipArrDetector:
         self.vd_max = 0
 
 
-    cpdef void find_pip_map(self):
+    cpdef void findPipMap(self):
         """
-        对一段时间序列，返回所有时间窗的pip
-        :type series: 时间序列
-        :return: 全局pip表（dataframe）
+        对当前时间序列，返回所有子时间窗口的pip
         """
         # 预生成pip容器
         cdef int min_d = 3
@@ -80,7 +78,7 @@ cdef class PipArrDetector:
         while i_l < n:
             i_r = i_l + min_d
             while i_r < n and i_r < i_l + max_d:
-                self.find_one_pip(i_l , i_r)
+                self.findOnePip(i_l , i_r)
                 i_pip_series[i_row] = self.i_pip
                 vd_series[i_row] = self.vd_max
                 i_row += 1
@@ -90,7 +88,6 @@ cdef class PipArrDetector:
 
         # 转换为pip_map
         i_row = 0
-
         while i_row < n_row:
             self.i_pip_map[i_start_series[i_row]][i_end_series[i_row]] = i_pip_series[i_row]
             self.vd_map[i_start_series[i_row]][i_end_series[i_row]] = vd_series[i_row]
@@ -98,12 +95,11 @@ cdef class PipArrDetector:
         self.n_row = i_row
         return 
 
-    cpdef void find_one_pip(self , int i_l , int i_r):
+    cpdef void findOnePip(self , int i_l , int i_r):
         """
-        对于一段时间窗，返回most important pip以及对应的vd
+        对于一段时间窗口，返回most important pip以及对应的vd
         :param i_l: 左界id
         :param i_r: 右界id
-        :return: 
         """
         cdef np.ndarray[double , ndim=1] series = self.series
         cdef double p_l = series[i_l]
@@ -126,10 +122,9 @@ cdef class PipArrDetector:
         return
 
 
-    cpdef find_all_pip_arr(self):
+    cpdef findAllPipArr(self):
         """
-        对时间序列的所有子窗，迭代pip，直到不再找到pip或pip数达到上界
-        :return:
+        对时间序列的所有子窗，迭代产生pip，直到不再找到pip或pip数达到上界
         """
         # 读取pip_map
         cdef int max_n_pip = 10
@@ -142,7 +137,6 @@ cdef class PipArrDetector:
         cdef np.ndarray[int , ndim=1] i_start_series = self.i_start_series
         cdef np.ndarray[int , ndim=1] i_end_series = self.i_end_series
 
-
         # 迭代all_pip_arr
         cdef int i_l
         cdef int i_r
@@ -153,7 +147,7 @@ cdef class PipArrDetector:
             i_l = i_start_series[i_row]
             i_r = i_end_series[i_row]
             if min_win_len < i_r-i_l < max_win_len:
-                pip_arr, n_pip = self.find_one_pip_arr(i_pip_map, vd_map, i_l, i_r, max_n_pip)
+                pip_arr, n_pip = self.findOnePipArr(i_pip_map , vd_map , i_l , i_r , max_n_pip)
                 if n_pip >= min_n_pip:
                     all_pip_arr.append(pip_arr)
             i_row += 1
@@ -161,10 +155,9 @@ cdef class PipArrDetector:
         return all_pip_arr
 
 
-    cpdef find_latest_pip_arr(self):
+    cpdef findLatestPipArr(self):
         """
         对所有右界为最新点的子窗，迭代pip，直到不再找到pip或pip数达到上界
-        :return:
         """
         # 读取pip_map
         cdef int max_n_pip = 10
@@ -183,7 +176,7 @@ cdef class PipArrDetector:
 
         i_row = 0
         while i_l < i_r - min_win_len:
-            pip_arr, n_pip = self.find_one_pip_arr(i_pip_map, vd_map, i_l, i_r, max_n_pip)
+            pip_arr, n_pip = self.findOnePipArr(i_pip_map , vd_map , i_l , i_r , max_n_pip)
             if n_pip >= min_n_pip:
                 all_pip_arr_series.append(pip_arr)
             i_l += 1
@@ -191,8 +184,8 @@ cdef class PipArrDetector:
         return all_pip_arr_series
 
 
-    cpdef find_one_pip_arr(self, cpp_map[int, cpp_map[int, int]]& i_pip_map,
-        cpp_map[int, cpp_map[int, double]]& vd_map, int i_l, int i_r, int max_n_pip):
+    cpdef findOnePipArr(self , cpp_map[int , cpp_map[int, int]]& i_pip_map ,
+                        cpp_map[int, cpp_map[int, double]]& vd_map , int i_l , int i_r , int max_n_pip):
         """
         给定左右界，确定截取时序内的pip_arr
         注意pip_link 与pip_series的不同：

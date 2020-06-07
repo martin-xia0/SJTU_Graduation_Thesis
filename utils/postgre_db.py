@@ -37,27 +37,13 @@ class StockDayBar(Base):
     amount = Column(Float())
 
 
-class PipArr(Base):
-    """
-    关键点序列
-    """
-    __tablename__ = 'pip_arr'
-
-    id = Column(Integer() , primary_key=True , autoincrement=True)
-    ts_code = Column(String(12))
-    i_start = Column(Integer())
-    i_end = Column(Integer())
-    pip_arr = Column(ARRAY(Integer()))
-    n_pip = Column(Integer())
-
-
 class Pattern(Base):
     """
     形态
     """
     __tablename__ = 'pattern'
 
-    id = Column(Integer() , primary_key=True , autoincrement=True)
+    id = Column(Integer(), primary_key=True, autoincrement=True)
     ts_code = Column(String(12))
     i_start = Column(Integer())
     i_end = Column(Integer())
@@ -66,11 +52,40 @@ class Pattern(Base):
     pip_arr = Column(ARRAY(Integer()))
     pip_p_arr = Column(ARRAY(Float()))
     pattern_name = Column(String(50))
+    n_fluctuation = Column(Integer())
 
+
+class MinSample(Base):
+    """
+    最小集样本
+    """
+    __tablename__ = 'min_sample'
+
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    ts_code = Column(String(12))
+    pattern_id = Column(Integer())
+    i_end = Column(Integer())
+    pattern_name = Column(String(50))
+    n_fluctuation = Column(Integer())
+    standard_level = Column(Integer())
+
+
+class BackTest(Base):
+    """
+    回测结果
+    """
+    __tablename__ = 'back_test'
+
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    pattern_name = Column(String(50))
+    n_fluctuation = Column(Integer())
+    standard_level = Column(Integer())
+    mean = Column(Float())
+    std = Column(Float())
+    kl_div = Column(Float())
 
 
 # ---引擎方法---
-
 import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -80,7 +95,7 @@ import pandas as pd
 DBSession = scoped_session(sessionmaker())
 
 
-def init_engine(recreate_all=False):
+def initEngine(recreate_all=False):
     """
     创建数据库
     :param recreate_all:
@@ -102,51 +117,46 @@ def init_engine(recreate_all=False):
     return engine
 
 
-def insert_df(df, table, engine):
+def insertDf(df, table, engine):
     """
     将格式对齐的df写入数据库
     :param table:
     :param df:
     :param engine:
     """
-    df.to_sql(name=table , con=engine , index=False , if_exists="append")
+    df.to_sql(name=table, con=engine, index=False, if_exists="append")
 
 
-def init_stock_buckets(engine):
+def initStockBuckets(engine):
     """
-    初始化所有股票代码
+    初始化所有股票代码集合
     """
-    l = pd.read_sql_query(sql="select ts_code from stock_day_bar", con=engine).values.tolist()
-    df = pd.DataFrame({"ts_code":list(set([x[0] for x in l]))})
-    df.to_sql(name="stock_bucket" , con=engine , index=False , if_exists="replace")
+    code_list = pd.read_sql_query(sql="select ts_code from stock_day_bar", con=engine).values.tolist()
+    df = pd.DataFrame({"ts_code": list(set([x[0] for x in code_list]))})
+    df.to_sql(name="stock_bucket", con=engine, index=False, if_exists="replace")
 
 
-def get_stock_buckets(engine):
+def getStockBuckets(engine):
     """
-    获得所有股票代码
+    获得所有股票代码集合
     """
-    df = pd.read_sql_query(sql="select ts_code from stock_bucket" , con=engine)
+    df = pd.read_sql_query(sql="select ts_code from stock_bucket", con=engine)
     return df["ts_code"].values
 
 
-def get_stock_day_bars(code, engine):
+def getStockDayBars(code, engine):
     """
-    将表中数据读出
+    将原始k线数据从表中读出
     """
     return pd.read_sql_query(sql="select * from stock_day_bar where ts_code=\'{}\'".format(code), con=engine)
 
 
-def get_stock_day_close(code, engine):
+def getStockDayClose(code, engine):
     """
-    将表中数据读出
+    将原始k线收盘数据从表中读出
     """
     return pd.read_sql_query(sql="select close from stock_day_bar where ts_code=\'{}\'".format(code), con=engine)["close"].values
 
 
-def get_pip_arr(code, engine):
-    return pd.read_sql_query(sql="select * from pip_arr where ts_code=\'{}\'".format(code), con=engine)
-
-
-
 if __name__ == '__main__':
-    init_engine()
+    initEngine()

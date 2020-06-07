@@ -4,7 +4,8 @@ from distutils.core import Extension
 import numpy as np
 
 
-name = "dist_models"
+name = "dist_matrix"
+# name = "optimal_set"
 
 sourcefiles = ["{}.pyx".format(name)]
 headerfiles = ["/usr/local/lib/python3.7/site-packages/Cython/Includes", np.get_include()]
