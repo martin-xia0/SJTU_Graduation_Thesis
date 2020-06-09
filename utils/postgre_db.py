@@ -55,6 +55,24 @@ class Pattern(Base):
     n_fluctuation = Column(Integer())
 
 
+class PurePattern(Base):
+    """
+    去重形态
+    """
+    __tablename__ = 'pure_pattern'
+
+    id = Column(Integer(), primary_key=True, autoincrement=True)
+    ts_code = Column(String(12))
+    i_start = Column(Integer())
+    i_end = Column(Integer())
+    start_date = Column(String(10))
+    end_date = Column(String(10))
+    pip_arr = Column(ARRAY(Integer()))
+    pip_p_arr = Column(ARRAY(Float()))
+    pattern_name = Column(String(50))
+    n_fluctuation = Column(Integer())
+
+
 class MinSample(Base):
     """
     最小集样本
@@ -80,6 +98,7 @@ class BackTest(Base):
     pattern_name = Column(String(50))
     n_fluctuation = Column(Integer())
     standard_level = Column(Integer())
+    forward_p = Column(Integer())
     mean = Column(Float())
     std = Column(Float())
     kl_div = Column(Float())
