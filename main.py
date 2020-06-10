@@ -5,6 +5,11 @@ import numpy as np
 import pandas as pd
 
 
+pattern_names = ["triangles_ascending_up", "triangles_ascending_down", "triangles_descending_up",
+                 "triangles_descending_down", "triangles_symmetrical_up", "triangles_symmetrical_down"]
+n_fluctuations = [6, 7, 8]
+
+
 def searchAllPattern():
     """
     工作模式
@@ -71,8 +76,6 @@ def selectAllPurePattern():
     去重获得提纯样本
     """
     recreateTable(table_name="pure_pattern")
-    pattern_names = ["triangles_ascending_up", "triangles_ascending_down", "triangles_descending_up",
-                     "triangles_descending_down", "triangles_symmetrical_up", "triangles_symmetrical_dow"]
     n_fluctuations = [6, 7, 8]
     for pattern_name in pattern_names:
         for n in n_fluctuations:
@@ -133,15 +136,12 @@ def concentrateAllPattern():
     提炼所有样本
     """
     recreateTable(table_name="min_sample")
-    pattern_names = ["triangles_ascending_up", "triangles_ascending_down", "triangles_descending_up",
-                     "triangles_descending_down", "triangles_symmetrical_up", "triangles_symmetrical_dow"]
-    n_fluctuations = [6, 7, 8]
     for pattern_name in pattern_names:
         for n in n_fluctuations:
             concentrateOnePattern(pattern=pattern_name, n=n)
 
 
-def concentrateOnePattern(pattern, n):
+def concentrateOnePattern(pattern_name, n_fluctuation):
     """
     工作模式
     1.求取一阶距离矩阵
@@ -154,13 +154,12 @@ def concentrateOnePattern(pattern, n):
     from pattern_concentration.optimal_set import OptimalSet
 
     engine = initEngine()
-
     t2 = time.time()
     # 生成最大集
-    print("开始处理 {} 次波动 {} 形态".format(pattern, n))
+    print("开始处理 {} 次波动 {} 形态".format(pattern_name, n_fluctuation))
     df = pd.read_sql_query(sql="select * from pure_pattern "
                                "where pattern_name=\'{}\' and n_fluctuation=\'{}\' "
-                           .format(pattern, n), con=engine)
+                           .format(pattern_name, n_fluctuation), con=engine)
     # df = df.head(100)
     print("最大样本集样本容量 {}".format(len(df)))
     sample_ids = df.id.values
@@ -225,8 +224,6 @@ def concentrateOnePattern(pattern, n):
             sample_row = df.loc[df["id"] == sample_id]
             ts_code = sample_row["ts_code"].values[0]
             i_end = int(sample_row["i_end"].values[0])
-            pattern_name = sample_row["pattern_name"].values[0]
-            n_fluctuation = int(sample_row["n_fluctuation"].values[0])
             pattern_id = int(sample_row["id"].values[0])
             sample_obj = [{"ts_code": ts_code, "i_end": i_end, "pattern_name": pattern_name,
                            "pattern_id": pattern_id, "n_fluctuation": n_fluctuation, "standard_level": i_level}]
@@ -245,9 +242,6 @@ def doBackTest():
     from utils.postgre_db import MinSample
     engine = initEngine()
     recreateTable(table_name="back_test")
-    pattern_names = ["triangles_ascending_up", "triangles_ascending_down", "triangles_descending_up",
-                     "triangles_descending_down", "triangles_symmetrical_up", "triangles_symmetrical_dow"]
-    n_fluctuations = [6, 7, 8]
     standard_levels = [1, 2, 3, 4, 5]
     doOneBackTest(pattern_names[0], n_fluctuations[0], standard_levels[0], engine)
 
@@ -274,23 +268,22 @@ def scanDb(table):
         print(df.shape)
         print("已扫描股票数量 {}".format(len(set(df.ts_code.values))))
     elif table == "min_sample":
-        pattern = "triangles_ascending_up"
-        df = pd.read_sql_query(sql="select * from min_sample "
-                                   "where pattern_name=\'{}\'".format(pattern), con=engine)
-        print(df)
-        print(df.shape)
+        for pattern_name in pattern_names:
+            df = pd.read_sql_query(sql="select * from min_sample "
+                                       "where pattern_name=\'{}\'".format(pattern_name), con=engine)
+            print("{} 的样本数量 {}".format(pattern_name, df.shape))
     elif table == "back_test":
         df = pd.read_sql_query(sql="select * from back_test", con=engine)
         # "where pattern_name=\'{}\'".format(pattern), con=engine)
         print(df)
         print(df.shape)
     elif table == "pure_pattern":
-        pattern = "triangles_ascending_up"
-        n = 6
-        df = pd.read_sql_query(sql="select * from pure_pattern "
-                                   "where pattern_name=\'{}\' and n_fluctuation=\'{}\' ".format(pattern, n), con=engine)
-        print(df)
-        print(df.shape)
+        for pattern_name in pattern_names:
+            for n_fluctuation in n_fluctuations:
+                df = pd.read_sql_query(sql="select * from pure_pattern "
+                                           "where pattern_name=\'{}\' and n_fluctuation=\'{}\' "
+                                       .format(pattern_name, n_fluctuation), con=engine)
+                print("{} 形态 {} 次波动的样本数量 {}".format(pattern_name, n_fluctuation, df.shape))
 
 
 def recreateDb():
@@ -331,85 +324,20 @@ def recreateTable(table_name):
         BackTest.__table__.create(engine)
 
 
-def testDistMatrix():
-    """
-    测试模式
-    测试不同距离模型生成的距离矩阵
-    """
-    from pattern_concentration.dist_matrix import DistMatrix
-    s1 = np.array([1, 3, 4, 9, 8, 2, 1, 5, 7, 3], dtype=float)
-    s2 = np.array([0, 6, 2, 3, 0, 10, 4, 3, 6, 3], dtype=float)
-    sample_set = {"1": s1, "2": s2}
-    t1 = time.time()
-    matrix = DistMatrix(sample_set)
-    matrix.normalizeSeries()
-    for _ in range(1):
-        matrix.getEuclideanDistMatrix()
-        matrix.getManhattanDistMatrix()
-        matrix.getDtwDistMatrix()
-    # print(matrix.getEuclideanDistMatrix())
-    # print(matrix.getManhattanDistMatrix())
-    # print(matrix.getDtwDistMatrix())
-    print("耗时 {}".format(time.time()-t1))
-
-
-def testSampleConcentration():
-    """
-    测试模式
-    测试样本集的提取
-    """
-    from pattern_concentration.optimal_set import fastSort
-    sum_arr = np.array([5, 7, 1, 6, 9, 4, 8, 3, 2, 2])
-    index = np.arange(len(sum_arr))
-    fastSort(sum_arr, index, 0, len(sum_arr)-1)
-    print(sum_arr, index)
-
-
-def testSamplePainting():
-    """
-    测试模式
-    画出单个k线样本
-    """
-    from utils.painter import paintChart, paintCandlestick
-    from utils.postgre_db import initEngine
-    from utils.postgre_db import Pattern
-
-    engine = initEngine()
-
-    pattern = "triangles_ascending_up"
-    n = 6
-    code = "300085.SZ"
-    print("开始处理 {} 次波动 {} 形态".format(pattern, n))
-    df = pd.read_sql_query(sql="select * from pattern "
-                               "where ts_code=\'{}\' and pattern_name=\'{}\' and n_fluctuation=\'{}\' "
-                           .format(code, pattern, n), con=engine)
-    sample = df.loc[0, :]
-    print(sample.id)
-    bar_df = pd.read_sql_query(sql="select open, high, low, close from stock_day_bar "
-                                   "where ts_code=\'{}\' and i>={} and i<={}"
-                               .format(sample.ts_code, sample.i_start, sample.i_end), con=engine)
-    open_series = bar_df.open.values
-    high_series = bar_df.high.values
-    low_series = bar_df.low.values
-    close_series = bar_df.close.values
-    n = len()
-    bar_series = [[]]
-    print(len(bar_series))
-    paintCandlestick(bar_series, sample)
-
-
 if __name__ == "__main__":
     # searchAllPattern()
     # scanDb(table="pattern")
 
     # selectAllPurePattern()
-    # scanDb(table="pure_pattern")
+    pattern_name = "triangles_symmetrical_down"
+    for n_fluctuation in n_fluctuations:
+        selectOnePurePattern(pattern_name, n_fluctuation)
+        concentrateOnePattern(pattern_name, n_fluctuation)
 
-    concentrateAllPattern()
+    scanDb(table="pure_pattern")
+    # concentrateAllPattern()
     scanDb(table="min_sample")
 
     # doBackTest()
     # scanDb(table="back_test")
 
-    # testSampleConcentration()
-    # testSamplePainting()
